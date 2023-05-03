@@ -23,5 +23,4 @@ namespace Carubbi.Security
         /// </summary>
         TripleDES
     }
-
 }

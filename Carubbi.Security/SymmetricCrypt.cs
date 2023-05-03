@@ -14,19 +14,15 @@ namespace Carubbi.Security
 
         private readonly SymmetricCryptProvider _cryptProvider;
         private readonly SymmetricAlgorithm _algorithm;
-   
+
         /// <summary>
         /// Inicialização do vetor do algoritmo simétrico
         /// </summary>
-        private void SetIV()
-        {
-            if (_cryptProvider == SymmetricCryptProvider.Rijndael)
-                _algorithm.IV = new byte[]
-                    {0xf, 0x6f, 0x13, 0x2e, 0x35, 0xc2, 0xcd, 0xf9, 0x5, 0x46, 0x9c, 0xea, 0xa8, 0x4b, 0x73, 0xcc};
-            else
-                _algorithm.IV = new byte[] {0xf, 0x6f, 0x13, 0x2e, 0x35, 0xc2, 0xcd, 0xf9};
-        }
-  
+        private void SetIV() => _algorithm.IV = _cryptProvider == SymmetricCryptProvider.Rijndael
+                ? (new byte[]
+                    {0xf, 0x6f, 0x13, 0x2e, 0x35, 0xc2, 0xcd, 0xf9, 0x5, 0x46, 0x9c, 0xea, 0xa8, 0x4b, 0x73, 0xcc})
+                : (new byte[] { 0xf, 0x6f, 0x13, 0x2e, 0x35, 0xc2, 0xcd, 0xf9 });
+
         #endregion
 
         #region Properties
@@ -43,7 +39,7 @@ namespace Carubbi.Security
         /// </summary>
         public SymmetricCrypt()
         {
-            _algorithm = new RijndaelManaged {Mode = CipherMode.CBC};
+            _algorithm = new RijndaelManaged { Mode = CipherMode.CBC };
             _cryptProvider = SymmetricCryptProvider.Rijndael;
         }
         /// <summary>
@@ -51,31 +47,32 @@ namespace Carubbi.Security
         /// </summary>
         /// <param name="cryptProvider">Tipo de criptografia.</param>
         public SymmetricCrypt(SymmetricCryptProvider cryptProvider)
-             {     
-                    // Seleciona algoritmo simétrico
-                    switch(cryptProvider)
-                    {
-                           case SymmetricCryptProvider.Rijndael:
-                                  _algorithm = new RijndaelManaged();
-                                 _cryptProvider = SymmetricCryptProvider.Rijndael;
-                                  break;
-                           case SymmetricCryptProvider.RC2:
-                                  _algorithm = new RC2CryptoServiceProvider();
-                                  _cryptProvider = SymmetricCryptProvider.RC2;
-                                  break;
-                           case SymmetricCryptProvider.DES:
-                                  _algorithm = new DESCryptoServiceProvider();
-                                  _cryptProvider = SymmetricCryptProvider.DES;
-                                  break;
-                           case SymmetricCryptProvider.TripleDES:
-                                  _algorithm = new TripleDESCryptoServiceProvider();
-                                  _cryptProvider = SymmetricCryptProvider.TripleDES;
-                                  break;
-                        default:
-                            throw new ArgumentOutOfRangeException(nameof(cryptProvider), cryptProvider, null);
-                    }
-                    _algorithm.Mode = CipherMode.CBC;
-             }
+        {
+            // Seleciona algoritmo simétrico
+            switch (cryptProvider)
+            {
+                case SymmetricCryptProvider.Rijndael:
+                    _algorithm = new RijndaelManaged();
+                    _cryptProvider = SymmetricCryptProvider.Rijndael;
+                    break;
+                case SymmetricCryptProvider.RC2:
+                    _algorithm = new RC2CryptoServiceProvider();
+                    _cryptProvider = SymmetricCryptProvider.RC2;
+                    break;
+                case SymmetricCryptProvider.DES:
+                    _algorithm = new DESCryptoServiceProvider();
+                    _cryptProvider = SymmetricCryptProvider.DES;
+                    break;
+                case SymmetricCryptProvider.TripleDES:
+                    _algorithm = new TripleDESCryptoServiceProvider();
+                    _cryptProvider = SymmetricCryptProvider.TripleDES;
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(cryptProvider), cryptProvider, null);
+            }
+
+            _algorithm.Mode = CipherMode.CBC;
+        }
         #endregion
 
         #region Public methods
@@ -102,7 +99,7 @@ namespace Carubbi.Security
                 else if (keySize < maxSize)
                 {
                     // Seta um tamanho válido
-                    var validSize = (keySize <= minSize) ? minSize : (keySize - keySize % skipSize) + skipSize;
+                    var validSize = (keySize <= minSize) ? minSize : keySize - (keySize % skipSize) + skipSize;
                     if (keySize < validSize)
                     {
                         // Preenche a chave com arterisco para corrigir o tamanho
@@ -110,6 +107,7 @@ namespace Carubbi.Security
                     }
                 }
             }
+
             var key = new PasswordDeriveBytes(Key, Encoding.ASCII.GetBytes(salt));
             return key.GetBytes(Key.Length);
         }
@@ -126,7 +124,7 @@ namespace Carubbi.Security
             _algorithm.Key = keyByte;
             SetIV();
             // Interface de criptografia / Cria objeto de criptografia
-            var cryptoTransform = _algorithm.CreateEncryptor();
+            ICryptoTransform cryptoTransform = _algorithm.CreateEncryptor();
             var memoryStream = new MemoryStream();
             var cryptoStream = new CryptoStream(memoryStream, cryptoTransform, CryptoStreamMode.Write);
             // Grava os dados criptografados no MemoryStream
@@ -151,7 +149,7 @@ namespace Carubbi.Security
             _algorithm.Key = keyByte;
             SetIV();
             // Interface de criptografia / Cria objeto de descriptografia
-            var cryptoTransform = _algorithm.CreateDecryptor();
+            ICryptoTransform cryptoTransform = _algorithm.CreateDecryptor();
             try
             {
                 var _memoryStream = new MemoryStream(cryptoByte, 0, cryptoByte.Length);
@@ -168,5 +166,4 @@ namespace Carubbi.Security
         #endregion
     }
 }
-
 

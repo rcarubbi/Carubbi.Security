@@ -22,10 +22,8 @@ namespace Carubbi.Security
         // encryption or decryption. 
         public string KeyFilePath { get; private set; }
 
-
         // Gets the provider name. 
         public override string Name => _pName;
-
 
         // Performs provider initialization. 
         public override void Initialize(string name, NameValueCollection config)
@@ -35,13 +33,12 @@ namespace Carubbi.Security
             ReadKey(KeyFilePath);
         }
 
-
         // Performs encryption. 
         public override XmlNode Encrypt(XmlNode node)
         {
             var encryptedData = EncryptString(node.OuterXml);
 
-            var xmlDoc = new XmlDocument {PreserveWhitespace = true};
+            var xmlDoc = new XmlDocument { PreserveWhitespace = true };
             xmlDoc.LoadXml("<EncryptedData>" +
                 encryptedData + "</EncryptedData>");
 
@@ -54,7 +51,7 @@ namespace Carubbi.Security
             var decryptedData =
                 DecryptString(encryptedNode.InnerText);
 
-            var xmlDoc = new XmlDocument {PreserveWhitespace = true};
+            var xmlDoc = new XmlDocument { PreserveWhitespace = true };
             xmlDoc.LoadXml(decryptedData);
 
             return xmlDoc.DocumentElement ?? throw new InvalidOperationException();
@@ -67,7 +64,7 @@ namespace Carubbi.Security
             var valBytes =
                 Encoding.Unicode.GetBytes(encryptValue);
 
-            var transform = _des.CreateEncryptor();
+            ICryptoTransform transform = _des.CreateEncryptor();
 
             var ms = new MemoryStream();
             var cs = new CryptoStream(ms,
@@ -80,7 +77,6 @@ namespace Carubbi.Security
             return Convert.ToBase64String(returnBytes);
         }
 
-
         // Decrypts an encrypted configuration section and  
         // returns the unencrypted XML as a string. 
         private string DecryptString(string encryptedValue)
@@ -88,7 +84,7 @@ namespace Carubbi.Security
             var valBytes =
                 Convert.FromBase64String(encryptedValue);
 
-            var transform = _des.CreateDecryptor();
+            ICryptoTransform transform = _des.CreateDecryptor();
 
             var ms = new MemoryStream();
             var cs = new CryptoStream(ms,
@@ -117,7 +113,6 @@ namespace Carubbi.Security
             }
         }
 
-
         // Reads in the TripleDES key and vector from  
         // the supplied file path and sets the Key  
         // and IV properties of the  
@@ -133,12 +128,8 @@ namespace Carubbi.Security
             }
         }
 
-
         // Converts a byte array to a hexadecimal string. 
-        private static string ByteToHex(byte[] byteArray)
-        {
-            return byteArray.Aggregate("", (current, b) => current + b.ToString("X2"));
-        }
+        private static string ByteToHex(byte[] byteArray) => byteArray.Aggregate("", (current, b) => current + b.ToString("X2"));
 
         // Converts a hexadecimal string to a byte array. 
         private static byte[] HexToByte(string hexString)
@@ -152,6 +143,5 @@ namespace Carubbi.Security
 
             return returnBytes;
         }
-
     }
 }
